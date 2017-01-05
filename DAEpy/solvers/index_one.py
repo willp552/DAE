@@ -103,8 +103,8 @@ def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
         Fx  = fx(x,y,t)
 
         dxdt = F
-        dydt = - m * ((1-w) * vmp(Gy, G) + vmp(Fy, l))
-        dldt = - (1-w) * (vmp(Gx,G) + vmp(Fx,l))
+        dydt = - m * (vmp(Gy, G) + vmp(Fy, l))
+        dldt =  np.zeros_like(- vmp(Gx,G) - vmp(Fx,l))
 
         return np.concatenate((dxdt,dydt,dldt))
 
@@ -126,15 +126,15 @@ def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
         Fx  = fx(x,y,t)
 
         bx = x[:,0]-x0
-        by = - m * ((1-w) * vmp(Gy, G) + vmp(Fy, l))[:,0]
-        bl = l[:,1] - w * vmp(Gx,G)[:,1]
+        by = - m * (vmp(Gy, G) + vmp(Fy, l))[:,0]
+        bl = (1 - w) * l[:,1] - w * vmp(Gx,G)[:,1]
 
         return np.concatenate((bx,by,bl))
 
     return ode, bnd
 
 
-def dae_solver_I(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, *args, **kwargs):
+def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, *args, **kwargs):
 
     """Solve a differential algebraic equation using the optimal control
     formulation.
