@@ -3,9 +3,9 @@ from .jacobians import estimate_jacobian, estimate_jacobians_many
 from scipy.integrate import solve_bvp
 
 import numpy as np
+import pdb
 
-
-def parse_jacobians(f, g, fx, fy, gx, gy):
+def parse_jacobians(f, g, fx, fy, gx):
 
     """Parse the Jacobians and evalate numerically if necessary.
     """
@@ -13,10 +13,10 @@ def parse_jacobians(f, g, fx, fy, gx, gy):
     if fx == None or fy == None:
         fx, fy = estimate_jacobians_many(f, [0,1])
 
-    if gx == None or gy == None:
-        gx, gy = estimate_jacobians_many(g, [0,1])
+    if gx == None:
+        gx = estimate_jacobian(g, 0)
 
-    return fx, fy, gx, gy
+    return fx, fy, gx
 
 def vmp(x, y):
     """
@@ -25,7 +25,7 @@ def vmp(x, y):
     return np.einsum("ji...,j...->i...", x, y)
 
 
-def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
+def parse_functions(f, g, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
 
     """Merges the functions and their Jacobians in a single unified ODE with
     boundary conditions.
@@ -38,15 +38,14 @@ def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
 
         # Evaluate functions
         F   = f(x,y,t)
-        G   = g(x,y,t)
-        Gy  = gy(x,y,t)
-        Gx  = gx(x,y,t)
+        G   = g(x,t)
+        Gx  = gx(x,t)
         Fy  = fy(x,y,t)
         Fx  = fx(x,y,t)
 
         dxdt = F
-        dydt = - m * (vmp(Gy, G) + vmp(Fy, l))
-        dldt =  np.zeros_like(- vmp(Gx,G) - vmp(Fx,l))
+        dydt = - m * vmp(Fy, l)
+        dldt =  - (1-w)*vmp(Gx,G) - vmp(Fx,l)
 
         return np.concatenate((dxdt,dydt,dldt))
 
@@ -61,22 +60,21 @@ def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
 
         # Evaluate functions
         F   = f(x,y,t)
-        G   = g(x,y,t)
-        Gy  = gy(x,y,t)
-        Gx  = gx(x,y,t)
+        G   = g(x,t)
+        Gx  = gx(x,t)
         Fy  = fy(x,y,t)
         Fx  = fx(x,y,t)
 
         bx = x[:,0]-x0
-        by = - m * (vmp(Gy, G) + vmp(Fy, l))[:,0]
-        bl = (1 - w) * l[:,1] - w * vmp(Gx,G)[:,1]
+        by = vmp(Fy, l)[:,0]
+        bl = l[:,1] - w * vmp(Gx,G)[:,1]
 
         return np.concatenate((bx,by,bl))
 
     return ode, bnd
 
 
-def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, *args, **kwargs):
+def dae_solver_two(f, g, x, y, t, x0, m, w, gx=None, fy=None, fx=None, *args, **kwargs):
 
     """Solve a differential algebraic equation using the optimal control
     formulation.
@@ -100,10 +98,9 @@ def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, 
         shape (nx, m) and ''y'' with shape (ny, m). Returns a 1-dimensional
         array of length nx.
     g : callable
-        Right-hand side of equation (2). The calling signature is ''g(x,y,t)'',
-        where x, y and t are all ndarrays: ''t'' with shape (m,), ''x'' with
-        shape (nx, m) and ''y'' with shape (ny, m). Returns a 1-dimensional
-        array of length ny.
+        Right-hand side of equation (2). The calling signature is ''g(x,t)'',
+        where x, y and t are all ndarrays: ''t'' with shape (m,) and ''x'' with
+        shape (nx, m).
     x : array_like, shape (nx, m)
         Intial guess for the differential variable values at the mesh nodes, the
         i-th column corresponds to t[i].
@@ -116,14 +113,9 @@ def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, 
     x0 : array_like, shape (nx,)
         Intial conditions for the differential variables.
     m : scalar
-        Parameter value for the gradient descent.Esimtates
+        Parameter value for the gradient descent.
     w : scalar
         Relative weighting for the optimal control.
-    gy : callable
-        Jacobian of f with respects to the algebraic variables (y). The calling
-        signature is ''gy(x,y,t)'' where x, y and t are all ndarrays: ''t'' with
-        shape (m,), ''x'' with shape (nx, m) and ''y'' with shape (ny, m).
-        Returns a 2-dimensional array with shape (ny,ny).
     gx : callable
         Jacobian of f with respects to the algebraic variables (y). The calling
         signature is ''gx(x,y,t)'' where x, y and t are all ndarrays: ''t'' with
@@ -166,12 +158,6 @@ def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, 
             * 1: The maximum number of mesh nodes is exceeded.
             * 2: A singular Jacobian encountered when solving the collocation
               system.
-
-    Notes
-    -----
-
-    Much of the documentation here is taken from, or heavily influenced by the
-    documentation in the solve_bvp function in scipy.
     """
 
     # Ensure that the inputs are numpy ndarrays
@@ -205,7 +191,7 @@ def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, 
 
     # Parse the Jacobians
 
-    fx, fy, gx, gy = parse_jacobians(f, g, fx, fy, gx, gy)
+    fx, fy, gx = parse_jacobians(f, g, fx, fy, gx)
 
     # Infer the t range
 
@@ -214,7 +200,7 @@ def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, 
 
     # Parse the functions
 
-    ode, bnd = parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, nx, ny)
+    ode, bnd = parse_functions(f, g, fy, gx, fx, x0, ta, tb, m, w, nx, ny)
 
     # Generate the inital function surface using a zero start more lambda.
 
