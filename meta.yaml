@@ -1,0 +1,11 @@
+package:
+	name: DAEpy
+	version: "0.1.0"
+
+
+requirements:
+	build:
+		- python
+
+	run:
+		- python

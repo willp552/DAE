@@ -63,13 +63,13 @@ if __name__ == "__main__":
     numx = 3
     numy = 1
 
-    t = np.linspace(0,1,100, dtype=np.float64)
+    t = np.linspace(0,1,numt, dtype=np.float64)
     x = np.zeros((numx, numt), dtype=np.float64)
     y = np.zeros((numy, numt), dtype=np.float64)
 
     x0 = np.array([1.0,1.0,0.0], dtype=np.float64)
     w = 0.5
-    m = 1.0e9
+    m = 1.0e5
 
     sol = dae_solver_one(f, g, x, y, t, x0, m, w, verbose = 2, tol = 1e-5)
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     ax[1].set_xlabel("Times (Arbitrary Units)")
     ax[1].set_ylabel("Relative Error")
-    #ax[1].plot(sol.x, (sol.y[:3].T - c_exact(sol.x).T)/c_exact(sol.x).T)
+    ax[1].plot(sol.x[1:], (sol.y[:3].T - c_exact(sol.x).T)[1:]/c_exact(sol.x).T[1:])
 
     plt.show()
 

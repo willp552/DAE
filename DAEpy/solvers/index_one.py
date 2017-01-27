@@ -25,7 +25,7 @@ def vmp(x, y):
     return np.einsum("ji...,j...->i...", x, y)
 
 
-def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
+def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, mu, w, numx, numy):
 
     """Merges the functions and their Jacobians in a single unified ODE with
     boundary conditions.
@@ -45,8 +45,8 @@ def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
         Fx  = fx(x,y,t)
 
         dxdt = F
-        dydt = - m * (vmp(Gy, G) + vmp(Fy, l))
-        dldt =  np.zeros_like(- vmp(Gx,G) - vmp(Fx,l))
+        dydt = - mu * (vmp(Gy, G) + vmp(Fy, l))
+        dldt =  - vmp(Gx,G) - vmp(Fx,l)
 
         return np.concatenate((dxdt,dydt,dldt))
 
@@ -68,7 +68,7 @@ def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
         Fx  = fx(x,y,t)
 
         bx = x[:,0]-x0
-        by = - m * (vmp(Gy, G) + vmp(Fy, l))[:,0]
+        by = - mu * (vmp(Gy, G) + vmp(Fy, l))[:,0]
         bl = (1 - w) * l[:,1] - w * vmp(Gx,G)[:,1]
 
         return np.concatenate((bx,by,bl))
@@ -76,7 +76,7 @@ def parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, numx, numy):
     return ode, bnd
 
 
-def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, *args, **kwargs):
+def dae_solver_one(f, g, x, y, t, x0, mu, w, gy=None, fy=None, gx=None, fx=None, *args, **kwargs):
 
     """Solve a differential algebraic equation using the optimal control
     formulation.
@@ -214,7 +214,7 @@ def dae_solver_one(f, g, x, y, t, x0, m, w, gy=None, fy=None, gx=None, fx=None, 
 
     # Parse the functions
 
-    ode, bnd = parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, m, w, nx, ny)
+    ode, bnd = parse_functions(f, g, gy, fy, gx, fx, x0, ta, tb, mu, w, nx, ny)
 
     # Generate the inital function surface using a zero start more lambda.
 

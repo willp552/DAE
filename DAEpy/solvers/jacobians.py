@@ -54,6 +54,7 @@ def estimate_jacobian(func, j=0):
             args_new[j] = x_new
             f_new = func(*args_new)
             dfdx[:,i,:] = (f_new-f0)/hi
+
         return dfdx
     return jac
 
