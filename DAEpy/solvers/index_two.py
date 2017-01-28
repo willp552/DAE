@@ -161,8 +161,8 @@ def dae_solver_two(f, g, x, y, t, x0, mu, w, gx=None, fy=None, fx=None, *args, *
 
     # Ensure that the inputs are numpy ndarrays
 
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
+    x = np.asarray(x)
+    y = np.asarray(y)
     t = np.asarray(t)
 
     # Check the validity of the mesh and function inputs.

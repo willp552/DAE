@@ -32,7 +32,7 @@ def estimate_jacobian(func, j=0):
         args = list(args)
         x = args[j]
 
-        if x.ndim == 3:
+        if x.ndim != 2:
             raise("Dimensions of the independent variable should be 3...")
 
         eps = np.finfo(float).eps
