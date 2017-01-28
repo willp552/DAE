@@ -45,7 +45,7 @@ def parse_functions(f, g, fy, gx, fx, x0, ta, tb, mu, w, numx, numy):
 
         dxdt = F
         dydt = - mu * vmp(Fy, l)
-        dldt =  - vmp(Gx,G) - vmp(Fx,l)
+        dldt = - vmp(Gx,G) - vmp(Fx,l)
         return np.concatenate((dxdt,dydt,dldt))
 
     def bnd(za, zb):

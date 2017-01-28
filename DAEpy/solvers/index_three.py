@@ -82,8 +82,8 @@ def parse_functions(f, h, g, fx, fy, fz, gx, gy, hy, x0, y0, ta, tb, mu, w, nx, 
         bx = x[:,0] - x0
         by = y[:,0] - y0
         bz = vmp(Fz, l1)[:,0]
-        bl1 = l1[:,-1] - np.zeros_like(l1[:, -1])
-        bl2 = l2[:,-1] - vmp(Hy,H)[:,-1]
+        bl1 = l1[:,-1]
+        bl2 = l2[:,-1] #- vmp(Hy,H)[:,-1]
 
         return np.concatenate((bx,by,bz,bl1,bl2))
 
@@ -221,7 +221,7 @@ def dae_solver_three(f, g, h, x, y, z, t, x0, y0, mu, w, fx=None, fy=None, fz=No
     l1 = np.zeros_like(x)
     l2 = np.zeros_like(y)
     z = np.concatenate((x,y,z,l1,l2))
-
+    pdb.set_trace()
     solution = solve_bvp(ode, bnd, t, z, *args, **kwargs)
 
     return solution

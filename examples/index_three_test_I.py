@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 def f(x,y,z,t):
 
-    return np.array([z[0]*y[0], -z[0]*y[1]-9.81])
+    return np.array([-z[0]*y[0], -z[0]*y[1]-9.81])
 
 def g(x,y,t):
 
@@ -19,7 +19,7 @@ def h(y,t):
 
 if __name__ == "__main__":
 
-    numt = 50
+    numt = 5
     numx = 2
     numy = 2
     numz = 1
