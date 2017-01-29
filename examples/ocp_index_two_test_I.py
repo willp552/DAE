@@ -11,6 +11,26 @@ def g(x,t):
 
     return np.array([x[0]-0.5*t*x[1]-np.exp(-t)])
 
+def fx(x,y,t):
+
+    temp = np.array([[0.0,0.0],[0.0,0.0]])
+    temp = np.repeat(temp[:,:,np.newaxis],len(t),-1)
+
+    temp[0,1,:] = -0.5*(1+t)
+
+    return temp
+
+def fy(x,y,t):
+
+    temp = np.array([[0.0],[1.0]])
+
+    return np.repeat(temp[:,:,np.newaxis],len(t),-1)
+
+def gx(x,t):
+
+    return np.array([[[1.0]*len(t), -0.5*t]])
+
+
 def x_actual(t):
 
     return np.array([(1+0.5*t)*np.exp(-t), np.exp(-t)])
@@ -19,7 +39,21 @@ def L(x,u,t):
 
     G = g(x,t)
 
-    return np.einsum('ij...,ij...->j...', G, G)
+    return 0.5*np.einsum('ij...,ij...->j...', G, G)
+
+def Lx(x,u,t):
+
+    G = g(x,t)
+    Gx = gx(x,t)
+
+    return 2*np.einsum('i...,i...->...', G, Gx)
+
+def Lu(x,u,t):
+
+    nu = u.shape[0]
+    nt = t.shape[0]
+
+    return np.zeros((nu, nt))
 
 if __name__ == "__main__":
 
@@ -40,9 +74,9 @@ if __name__ == "__main__":
     x0 = np.array([1.0,1.0], dtype=np.float64)
     w = 1.0
 
-    m = 1.0e2
+    m = 1.0e8
 
-    sol = ocp_solver(L, f, x, y, t, x0, m, verbose = 2, tol = 1e-7, max_nodes = 10000)
+    sol = ocp_solver(L, f, x, y, t, x0, m,  Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-12, max_nodes = 10000)
 
     _ , ax = plt.subplots(2)
 

@@ -11,6 +11,28 @@ def g(x,y,t):
 
     return np.array([y[0]-x[0]*x[1]], dtype=np.float64)
 
+def gy(x,y,t):
+
+    tmp = np.array([[1.0]])
+
+    return np.repeat(tmp[...,np.newaxis],len(t),-1)
+
+def fy(x,y,t):
+
+    tmp = np.array([[-1.0], [-1.0], [1.0]])
+
+    return np.repeat(tmp[...,np.newaxis],len(t),-1)
+
+def gx(x,y,t):
+
+    return np.array([[-x[1], -x[0], [0]*len(t)]])
+
+def fx(x,y,t):
+
+    tmp = np.array([[0,0,0],[0,0,0],[0,0,0]])
+
+    return np.repeat(tmp[..., np.newaxis],len(t),-1)
+
 def c_exact(t):
 
     return np.array([1.0/(1.0+t), 1.0/(1.0+t), t/(1.0+t)])
@@ -21,9 +43,23 @@ def L(x,u,t):
 
     return np.einsum('ij...,ij...->j...', G, G)
 
+def Lx(x,u,t):
+
+    G = g(x,u,t)
+    Gx = gx(x,u,t)
+
+    return 2*np.einsum('i...,i...->...', G, Gx)
+
+def Lu(x,u,t):
+
+    G = g(x,u,t)
+    Gu = gy(x,u,t)
+
+    return 2*np.einsum('i...,i...->...', G, Gu)
+
 if __name__ == "__main__":
 
-    numt = 100
+    numt = 500
     numx = 3
     numy = 1
 
@@ -33,9 +69,9 @@ if __name__ == "__main__":
 
     x0 = np.array([1.0,1.0,0.0], dtype=np.float64)
     w = 0.5
-    m = 1.0e8
+    m = 1.0e5
 
-    sol = ocp_solver(L, f, x, y, t, x0, m, verbose = 2, tol = 1e-7)
+    sol = ocp_solver(L, f, x, y, t, x0, m, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-7, max_nodes = 10000)
 
     f, ax = plt.subplots(2)
 

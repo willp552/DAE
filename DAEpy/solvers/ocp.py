@@ -22,6 +22,20 @@ def construct_hamiltonian(L, f):
 
     return hamiltonian
 
+def parse_derivatives(H, Lx, Lu, fx, fu):
+
+    if Lx and fx:
+        Hx = lambda x,u,l,t: Lx(x,u,t)+np.einsum('i...,i...->...', l, fx(x,u,t))
+    else:
+        Hx = estimate_derivative(H, 0)
+
+    if Lu and fu:
+        Hu = lambda x,u,l,t: Lu(x,u,t)+np.einsum('i...,i...->...', l, fu(x,u,t))
+    else:
+        Hu = estimate_derivative(H, 1)
+
+    return Hx, Hu
+
 def parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu):
 
     """Constructs the ode and boundary equations from the Hamiltonians.
@@ -64,12 +78,12 @@ def parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu):
 
         bx = x[:,0] - x0
         bu = Hue[:,0]
-        bl = l[:,-1] + P
+        bl = l[:,-1] - P
 
         return np.concatenate((bx,bu,bl))
     return ode, bnd
 
-def ocp_solver(L, f, x, u, t, x0, m, phi=None, *args, **kwargs):
+def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=None, *args, **kwargs):
 
     """Solve an optimal control problem of the form:
 
@@ -175,12 +189,11 @@ def ocp_solver(L, f, x, u, t, x0, m, phi=None, *args, **kwargs):
 
     # Parse the Jacobian functions.
 
-    Hx = estimate_derivative(H, 0)
-    Hu = estimate_derivative(H, 1)
+    Hx, Hu = parse_derivatives(H, Lx, Lu, fx, fu)
 
     # Parse the ode and boundary conditions.
 
-    ode, bnd = parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu)
+    ode, bnd = parse_system(H, Hx, Hu, f, x0, ta, tb, mu, phi, nx, nu)
 
     # Generate the inital function surface using a zero start more lambda.
 

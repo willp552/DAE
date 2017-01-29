@@ -1,5 +1,6 @@
 from copy import copy
 import numpy as np
+import pdb
 
 def estimate_derivative(func, j=0):
 
@@ -34,6 +35,7 @@ def estimate_derivative(func, j=0):
         xdtype = x.dtype
         dfdx = np.empty((nx, m), dtype=xdtype)
         hx = eps**0.5 * (1 + np.abs(x))
+
 
         for i in range(nx):
             x_new = x.copy()
