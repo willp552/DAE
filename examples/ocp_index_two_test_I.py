@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
     m = 1.0e8
 
-    sol = ocp_solver(L, f, x, y, t, x0, m,  Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-12, max_nodes = 10000)
+    sol = ocp_solver(L, f, x, y, t, x0, m, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-12, max_nodes = 10000)
 
     _ , ax = plt.subplots(2)
 

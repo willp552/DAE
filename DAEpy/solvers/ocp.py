@@ -197,7 +197,7 @@ def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=No
 
     # Generate the inital function surface using a zero start more lambda.
 
-    l = np.zeros_like(x)
+    l = np.ones_like(x)
     z = np.concatenate((x,u,l))
 
     solution = solve_bvp(ode, bnd, t, z, *args, **kwargs)
