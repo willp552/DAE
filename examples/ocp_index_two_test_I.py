@@ -1,5 +1,7 @@
 from DAEpy.solvers.ocp import ocp_solver
 
+import os
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -57,6 +59,18 @@ def Lu(x,u,t):
 
 if __name__ == "__main__":
 
+    """
+    Parse the command line arguments.
+    """
+
+    parser = argparse.ArgumentParser(description="Parse example arguments.")
+    parser.add_argument('--folder', default=None, type=str, dest='folder')
+    args = parser.parse_args()
+
+    """
+    Perform the calculations.
+    """
+
     numt = 50
     numx = 2
     numy = 1
@@ -80,34 +94,40 @@ if __name__ == "__main__":
 
     plt.rc('text', usetex=True)
 
-    f, ax = plt.subplots(2)
+    f1, ax1 = plt.subplots(2,figsize=(10,7))
 
-    ax[0].set_xlabel("Times (Arbitrary Units)")
-    ax[0].set_ylabel("Concentration \n (Arbitrary Units)")
-    ax[0].plot(sol.t, sol.x.T)
+    ax1[0].set_xlabel("t")
+    ax1[0].set_ylabel("Differential Variables)")
+    ax1[0].plot(sol.t, sol.x.T)
 
-    ax[1].set_xlabel("Times (Arbitrary Units)")
-    ax[1].set_ylabel("RMS Residuals")
-    ax[1].plot(sol.t[1:], sol.rms_residuals)
+    ax1[1].set_xlabel("t")
+    ax1[1].set_ylabel("RMS Residuals")
+    ax1[1].plot(sol.t[1:], sol.rms_residuals)
 
-    f, ax = plt.subplots(2)
+    f2, ax2 = plt.subplots(2,figsize=(10,7))
 
-    ax[0].set_xlabel("Times (Arbitrary Units)")
-    ax[0].set_ylabel("Absolute Error (Arbitrary Units)")
-    ax[0].plot(sol.t, sol.x.T - x_actual(sol.t).T)
+    ax2[0].set_xlabel("t")
+    ax2[0].set_ylabel("Absolute Error")
+    ax2[0].plot(sol.t, sol.x.T - x_actual(sol.t).T)
 
-    ax[1].set_xlabel("Times (Arbitrary Units)")
-    ax[1].set_ylabel("Relative Error")
-    ax[1].plot(sol.t[1:], (sol.x.T - x_actual(sol.t).T)[1:]/x_actual(sol.t).T[1:])
+    ax2[1].set_xlabel("t")
+    ax2[1].set_ylabel("Relative Error")
+    ax2[1].plot(sol.t[1:], (sol.x.T - x_actual(sol.t).T)[1:]/x_actual(sol.t).T[1:])
 
-    f, ax = plt.subplots(2)
+    f3, ax3 = plt.subplots(2,figsize=(10,7))
 
-    ax[0].set_xlabel("Times (Arbitrary Units)")
-    ax[0].set_ylabel(r"$H$")
-    ax[0].plot(sol.t, sol.h.T)
+    ax3[0].set_xlabel("t")
+    ax3[0].set_ylabel(r"$H$")
+    ax3[0].plot(sol.t, sol.h.T)
 
-    ax[1].set_xlabel("Times (Arbitrary Units)")
-    ax[1].set_ylabel(r"$ ||\nabla H ||_{\infty}$")
-    ax[1].plot(sol.t, sol.hu_norm)
+    ax3[1].set_xlabel("t")
+    ax3[1].set_ylabel(r"$ ||\nabla H ||_{\infty}$")
+    ax3[1].plot(sol.t, sol.hu_norm)
 
-    plt.show()
+    if args.folder:
+        f1.savefig(os.path.join(args.folder, "index_two_I_variables.png"))
+        f2.savefig(os.path.join(args.folder, "index_two_I_errors.png"))
+        f3.savefig(os.path.join(args.folder, "index_two_I_hamiltonian.png"))
+    else:
+        print("Showing")
+        plt.show()
