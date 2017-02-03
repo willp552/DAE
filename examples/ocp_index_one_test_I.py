@@ -2,6 +2,7 @@ from DAEpy.solvers.ocp import ocp_solver
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pdb
 
 def f(x,y,t):
 
@@ -71,26 +72,36 @@ if __name__ == "__main__":
     w = 0.5
     m = 1.0e5
 
-    sol = ocp_solver(L, f, x, y, t, x0, m, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-7, max_nodes = 10000)
+    sol = ocp_solver(L, f, x, y, t, x0, m, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-4, max_nodes = 10000)
 
     f, ax = plt.subplots(2)
 
     ax[0].set_xlabel("Times (Arbitrary Units)")
     ax[0].set_ylabel("Concentration \n (Arbitrary Units)")
-    ax[0].plot(sol.x, sol.y[:3].T)
+    ax[0].plot(sol.t, sol.x.T)
 
     ax[1].set_xlabel("Times (Arbitrary Units)")
     ax[1].set_ylabel("RMS Residuals")
-    ax[1].plot(sol.x[1:], sol.rms_residuals)
+    ax[1].plot(sol.t[1:], sol.rms_residuals)
 
     f, ax = plt.subplots(2)
 
     ax[0].set_xlabel("Times (Arbitrary Units)")
     ax[0].set_ylabel("Absolute Error (Arbitrary Units)")
-    ax[0].plot(sol.x, sol.y[:3].T - c_exact(sol.x).T)
+    ax[0].plot(sol.t, sol.x.T - c_exact(sol.t).T)
 
     ax[1].set_xlabel("Times (Arbitrary Units)")
     ax[1].set_ylabel("Relative Error")
-    ax[1].plot(sol.x[1:], (sol.y[:3].T - c_exact(sol.x).T)[1:]/c_exact(sol.x).T[1:])
+    ax[1].plot(sol.t[1:], (sol.x.T - c_exact(sol.t).T)[1:]/c_exact(sol.t).T[1:])
+
+    f, ax = plt.subplots(2)
+
+    ax[0].set_xlabel("Times (Arbitrary Units)")
+    ax[0].set_ylabel("Hamiltonian (Arbitrary Units)")
+    ax[0].plot(sol.t, sol.h.T)
+
+    ax[1].set_xlabel("Times (Arbitrary Units)")
+    ax[1].set_ylabel("Hamiltonian Infinity Norm")
+    ax[1].plot(sol.t, sol.hu_norm)
 
     plt.show()

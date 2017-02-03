@@ -1,8 +1,44 @@
 from DAEpy.solvers.derivatives import estimate_derivative
 from scipy.integrate import solve_bvp
-
+from scipy.integrate._bvp import BVPResult
 import numpy as np
 import pdb
+
+class OCPResult(object):
+
+    def __init__(self, bvp_sol, nx, nu, t, h, hu_norm, rms_residuals):
+
+        # BVP solution
+        self._sol = bvp_sol
+
+        # Number of variables
+        self.nx  = nx
+        self.nu  = nu
+
+        # Outputs for different variables.
+        self.t   = t
+        self.x, self.u, self.l = self(t)
+        self.rms_residuals = rms_residuals
+
+        # Hamiltonian function.
+        self.h = h
+        self.hu_norm = hu_norm
+
+    def _split(self, x):
+
+        return np.split(x, np.cumsum([self.nx, self.nu]))
+
+    def __call__(self, t):
+
+        return self._split(self._sol.sol(t))
+
+def vecnorm(x, ord=2):
+    if ord == np.Inf:
+        return np.amax(np.abs(x), axis=0)
+    elif ord == -np.Inf:
+        return np.amin(np.abs(x), axis=0)
+    else:
+        return np.sum(np.abs(x)**ord, axis=0)**(1.0 / ord)
 
 def construct_hamiltonian(L, f):
 
@@ -101,7 +137,7 @@ def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=No
 
         Integrand of equation (1), representing the langrangian of the system.
         The calling signature is ''L(x,u,t)'' where x, y and t are all ndarrays:
-        ''t'' with shape (m,), ''x'' with shape (nx, m) and ''u'' with shape
+        ''t'' with shape (m,), ''x'' with shape (nxreccomended, m) and ''u'' with shape
         (nu, m). Returns a one dimensional array with length m.
     f : callable
         Right-hand side of equation (2). The calling signature is ''f(x,u,t)''
@@ -202,4 +238,22 @@ def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=No
 
     solution = solve_bvp(ode, bnd, t, z, *args, **kwargs)
 
-    return solution
+    # Calculate the final values.
+
+    tf = solution.x
+    xf, uf, lf = np.split(solution.y, np.cumsum([nx, nu]))
+
+    # Evaluate the hamiltonian.
+
+    hf  = H(xf, uf, lf, tf)
+    huf = Hu(xf, uf, lf, tf)
+
+    # Evaluate the vector norm.
+    hu_norm_f = vecnorm(huf, np.Inf)
+
+    ocpResult = OCPResult(bvp_sol=solution, nx=nx,
+                          nu=nu, t=solution.x,
+                          h=hf, hu_norm=hu_norm_f,
+                          rms_residuals=solution.rms_residuals)
+
+    return ocpResult
