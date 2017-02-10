@@ -108,6 +108,7 @@ def parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu):
         Hue = Hu(x, u, l, t)
 
         if phi:
+            # Need to correct to use derivative.
             P = phi(x, t)[:,-1]
         else:
             P = np.zeros_like(l[:,-1])

@@ -4,8 +4,25 @@ import os
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import pdb
 
+"""
+This is a simple demonstration of the proposed method for solving index 1
+differential algebraic equations.
+
+In this example a first order reaction is used, for which there is an
+explicit solution.
+
+                    A + B -> C
+
+        dCa/dt = -r
+        dCb/dt = -r
+        dCc/dt = +r
+
+        r - CaCb = 0
+
+x = c with length 3
+u = r with length 1
+"""
 def f(x,y,t):
 
     return np.array([-y[0], -y[0], y[0]], dtype=np.float64)

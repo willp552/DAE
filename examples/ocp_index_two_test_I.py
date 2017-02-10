@@ -5,6 +5,16 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
+"""
+This is a simple demonstration of the proposed method for solving index 2
+differential algebraic equations.
+
+        dx1/dt = -(1+t)x2/2
+        dx2/dt = y
+
+s.t     x1-tx2/2 = exp(-t)
+"""
+
 def f(x,y,t):
 
     return np.array([-0.5*(1+t)*x[1], y[0]])
