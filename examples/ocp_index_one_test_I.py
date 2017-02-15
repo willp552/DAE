@@ -96,8 +96,8 @@ if __name__ == "__main__":
     numy = 1
 
     t = np.linspace(0,1,numt, dtype=np.float64)
-    x = np.zeros((numx, numt), dtype=np.float64)
-    y = np.zeros((numy, numt), dtype=np.float64)
+    x = np.ones((numx, numt), dtype=np.float64)
+    y = np.ones((numy, numt), dtype=np.float64)
 
     x0 = np.array([1.0,1.0,0.0], dtype=np.float64)
     w = 0.5

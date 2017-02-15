@@ -50,7 +50,6 @@ def construct_hamiltonian(L, f):
         # Evaluate functions
         Le = L(x, u, t)
         Fe = f(x, u, t)
-
         # Evaulate the hamiltonian
         H = Le + np.einsum('i...,i...->...', l, Fe)
 
