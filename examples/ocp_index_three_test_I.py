@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     m = 1.0e5
 
-    sol = ocp_solver(L, f, x, y, t, x0, m, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-4, max_nodes = 2000)
+    sol = ocp_solver(L, f, x, y, t, x0, m, 1e-5, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbosity = 2, is_linear = True)
 
     f, ax = plt.subplots(2)
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     ax[1].set_xlabel("Times (Arbitrary Units)")
     ax[1].set_ylabel("RMS Residuals")
-    ax[1].plot(sol.t[1:], sol.rms_residuals)
+    #ax[1].plot(sol.t[1:], sol.rms_residuals)
 
 
     """

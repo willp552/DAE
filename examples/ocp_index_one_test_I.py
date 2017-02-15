@@ -103,7 +103,7 @@ if __name__ == "__main__":
     w = 0.5
     m = 1.0e5
 
-    sol = ocp_solver(L, f, x, y, t, x0, m, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-4, max_nodes = 10000)
+    sol = ocp_solver(L, f, x, y, t, x0, m, 1e-5, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbosity = 2)
 
     plt.rc('text', usetex=True)
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
     ax1[1].set_xlabel("t")
     ax1[1].set_ylabel("RMS Residuals")
-    ax1[1].plot(sol.t[1:], sol.rms_residuals)
+    #ax1[1].plot(sol.t[1:], sol.rms_residuals)
     ax1[1].set_ylim([0,2e-8])
 
     f2, ax2 = plt.subplots(2,figsize=(10,7))

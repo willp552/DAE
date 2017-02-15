@@ -1,6 +1,5 @@
 from DAEpy.solvers.derivatives import estimate_derivative
-from scipy.integrate import solve_bvp
-from scipy.integrate._bvp import BVPResult
+import scikits.bvp1lg.colnew as colnew
 import numpy as np
 import pdb
 
@@ -30,7 +29,7 @@ class OCPResult(object):
 
     def __call__(self, t):
 
-        return self._split(self._sol.sol(t))
+        return self._split(self._sol(t).T)
 
 def vecnorm(x, ord=2):
     if ord == np.Inf:
@@ -71,7 +70,7 @@ def parse_derivatives(H, Lx, Lu, fx, fu):
 
     return Hx, Hu
 
-def parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu):
+def parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu, t_bound):
 
     """Constructs the ode and boundary equations from the Hamiltonians.
     """
@@ -92,11 +91,10 @@ def parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu):
 
         return np.concatenate((dxdt,dydt,dldt))
 
-    def bnd(za, zb):
+    def bnd(z):
 
         # Memory inefficient way of making compatable with the functions.
-        z = np.vstack((za,zb)).T
-        t = np.array([ta,tb])
+        t = np.array(t_bound)
 
         # Parse the variables.
         x, u, l = np.split(z, np.cumsum([nx, nu]))
@@ -119,7 +117,7 @@ def parse_system(H, Hx, Hu, f, x0, ta, tb, m, phi, nx, nu):
         return np.concatenate((bx,bu,bl))
     return ode, bnd
 
-def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=None, *args, **kwargs):
+def ocp_solver(L, f, x, u, t, x0, mu, tol, phi=None, Lx=None, Lu=None, fx=None, fu=None, *args, **kwargs):
 
     """Solve an optimal control problem of the form:
 
@@ -227,21 +225,35 @@ def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=No
 
     Hx, Hu = parse_derivatives(H, Lx, Lu, fx, fu)
 
+    # Set up boundary points array.
+
+    bnd_points = [ta]*(nx + nu) + [tb]*nx
+
     # Parse the ode and boundary conditions.
 
-    ode, bnd = parse_system(H, Hx, Hu, f, x0, ta, tb, mu, phi, nx, nu)
+    ode, bnd = parse_system(H, Hx, Hu, f, x0, ta, tb, mu, phi, nx, nu, bnd_points)
 
     # Generate the inital function surface using a zero start more lambda.
 
-    l = np.ones_like(x)
+    l = np.random.uniform(1.0, 10, x.shape)
     z = np.concatenate((x,u,l))
 
-    solution = solve_bvp(ode, bnd, t, z, *args, **kwargs)
+    # Set up order array.
+
+    order = [1]*(2*nx+nu)
+
+    # Set up tolerances.
+
+    tolerances = [tol]*(2*nx+nu)
+
+    # Solve the system.
+
+    solution = colnew.solve(bnd_points, order, ode, bnd, tolerances=tolerances, *args, **kwargs)
 
     # Calculate the final values.
 
-    tf = solution.x
-    xf, uf, lf = np.split(solution.y, np.cumsum([nx, nu]))
+    tf = solution.get_mesh()
+    xf, uf, lf = np.split(solution.get_mesh_values().T, np.cumsum([nx, nu]))
 
     # Evaluate the hamiltonian.
 
@@ -252,8 +264,8 @@ def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=No
     hu_norm_f = vecnorm(huf, np.Inf)
 
     ocpResult = OCPResult(bvp_sol=solution, nx=nx,
-                          nu=nu, t=solution.x,
+                          nu=nu, t=solution.get_mesh(),
                           h=hf, hu_norm=hu_norm_f,
-                          rms_residuals=solution.rms_residuals)
+                          rms_residuals=None)
 
     return ocpResult

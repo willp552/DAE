@@ -220,7 +220,7 @@ class Column(object):
         Mw  = np.einsum('ij...,j...->i...', x, self.mr)
 
         Mk  = rho * A *(hw + 1.41*L*Mw/(rho*l*9.81**0.5))/Mw
-        
+
         if t is not None:
             out = np.empty((self.n_trays, self.n_comps, len(t)))
         else:
@@ -328,7 +328,7 @@ if __name__ == "__main__":
     w = 0.5
     m = 1.0e5
 
-    sol = ocp_solver(model.constraints, model.derivatives, x, y, t, x0, m, verbose = 2, tol = 1e-4, max_nodes = 10000)
+    sol = ocp_solver(model.constraints, model.derivatives, x, y, t, x0, m, 1e-5, verbosity = 2, is_linear = True)
 
     plt.rc('text', usetex=True)
 
