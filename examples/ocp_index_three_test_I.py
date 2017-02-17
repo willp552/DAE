@@ -66,9 +66,9 @@ if __name__ == "__main__":
     xresult = np.empty((numx, numt), dtype=np.float64)
     yresult = np.empty((numy, numt), dtype=np.float64)
 
-    t = np.linspace(0,0.1,numt, dtype=np.float64)
-    x = np.zeros((numx, numt), dtype=np.float64)
-    y = np.zeros((numy, numt), dtype=np.float64)
+    t = np.linspace(0,1.0,numt, dtype=np.float64)
+    x = np.ones((numx, numt), dtype=np.float64)
+    y = np.ones((numy, numt), dtype=np.float64)
 
     #x = x_actual(t)
     #y = y_actual(t)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     x0 = np.array([1.0,0.0,0.0,0.0], dtype=np.float64)
     w = 1.0
 
-    m = 1.0e5
+    m = 1.0e3
 
     sol = ocp_solver(L, f, x, y, t, x0, m, Lx=Lx, Lu=Lu, fx=fx, fu=fy, verbose = 2, tol = 1e-4, max_nodes = 2000)
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     ax[0].set_xlabel("Times (Arbitrary Units)")
     ax[0].set_ylabel("Concentration \n (Arbitrary Units)")
-    ax[0].plot(sol.t, sol.u.T)
+    ax[0].plot(sol.t, sol.x.T)
 
     ax[1].set_xlabel("Times (Arbitrary Units)")
     ax[1].set_ylabel("RMS Residuals")

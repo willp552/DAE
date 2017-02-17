@@ -168,7 +168,7 @@ def ocp_solver(L, f, x, u, t, x0, mu, phi=None, Lx=None, Lu=None, fx=None, fu=No
         Found solution for y as `scipy.interpolate.PPoly` instance, a C1
         continuous cubic spline.
     p : ndarray or None, shape (k,)
-        Found parameters. None, if the parameters were not present in the
+        Found parameters. None        pdb.set_trace(), if the parameters were not present in the
         problem.
     x : ndarray, shape (m,)
         Nodes of the final mesh.
